@@ -23,36 +23,55 @@
         .tab-bar {
             display: flex;
             background: #1e293b;
-            padding: 10px 10px 0 10px;
-            gap: 5px;
-            border-bottom: 2px solid #3b82f6;
+            padding: 12px 12px 0 12px;
+            gap: 8px;
+            border-bottom: 3px solid #3b82f6;
             overflow-x: auto;
         }
 
         .tab-btn {
-            padding: 12px 25px;
+            padding: 14px 30px;
             border: none;
             background: #334155;
             color: #94a3b8;
             cursor: pointer;
-            border-radius: 10px 10px 0 0;
-            font-weight: bold;
-            transition: 0.3s;
+            border-radius: 12px 12px 0 0;
+            font-size: 1.15rem; /* تكبير الخط بما يتناسب مع الشاشات */
+            font-weight: 700;    /* خط عريض وأكثر تميزاً */
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px; /* مسافة أكبر بين الأيقونة والنص */
             white-space: nowrap;
         }
 
-        .tab-btn i { font-size: 1.1rem; }
+        /* تكبير حجم الأيقونات داخل الأزرار */
+        .tab-btn i { 
+            font-size: 1.35rem; 
+            transition: transform 0.3s ease;
+        }
 
-        /* الألوان الخاصة بكل تبويب عند التفعيل */
-        .tab-btn.active[onclick*="page12"] { background: #8b5cf6; color: white; }
-        .tab-btn.active[onclick*="page40"] { background: #3b82f6; color: white; }
+        /* تأثيرات الألوان والتميز عند التفعيل */
+        .tab-btn.active[onclick*="page12"] { 
+            background: #8b5cf6; 
+            color: white; 
+            box-shadow: 0 -4px 12px rgba(139, 92, 246, 0.3); 
+        }
+        .tab-btn.active[onclick*="page40"] { 
+            background: #3b82f6; 
+            color: white; 
+            box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.3); 
+        }
 
+        /* تأثير عند تمرير مؤشر الماوس */
         .tab-btn:hover:not(.active) {
             background: #475569;
             color: #f1f5f9;
+        }
+        
+        .tab-btn:hover i {
+            transform: scale(1.15); /* تفاعل ذكي للأيقونة عند الحوم فوقها */
         }
 
         /* حاوية المحتوى */
