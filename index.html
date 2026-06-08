@@ -6,12 +6,12 @@
     <title>النظام الإداري الموحد | مدرسة الشيخ جاعد</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#1e293b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link align="apple-touch-icon" href="icon-192.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
@@ -19,60 +19,77 @@
         
         body { background-color: #0f172a; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
-        /* شريط التنقل العلوي */
+        /* شريط التنقل العلوي المعاصر */
         .tab-bar {
             display: flex;
+            align-items: center;
+            justify-content: space-between; /* توزيع العناصر بالتساوي */
             background: #1e293b;
-            padding: 12px 12px 0 12px;
-            gap: 8px;
+            padding: 12px 16px 0 16px;
             border-bottom: 3px solid #3b82f6;
-            overflow-x: auto;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
         }
 
         .tab-btn {
-            padding: 14px 30px;
+            padding: 14px 28px;
             border: none;
             background: #334155;
             color: #94a3b8;
             cursor: pointer;
             border-radius: 12px 12px 0 0;
-            font-size: 1.15rem; /* تكبير الخط بما يتناسب مع الشاشات */
-            font-weight: 700;    /* خط عريض وأكثر تميزاً */
-            letter-spacing: 0.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 12px; /* مسافة أكبر بين الأيقونة والنص */
+            gap: 10px;
             white-space: nowrap;
         }
 
-        /* تكبير حجم الأيقونات داخل الأزرار */
-        .tab-btn i { 
-            font-size: 1.35rem; 
-            transition: transform 0.3s ease;
-        }
+        .tab-btn i { font-size: 1.3rem; transition: transform 0.2s; }
 
-        /* تأثيرات الألوان والتميز عند التفعيل */
+        /* تميز الأزرار النشطة مع تأثير توهج عميق */
         .tab-btn.active[onclick*="page12"] { 
             background: #8b5cf6; 
             color: white; 
-            box-shadow: 0 -4px 12px rgba(139, 92, 246, 0.3); 
+            box-shadow: 0 -4px 15px rgba(139, 92, 246, 0.35); 
         }
         .tab-btn.active[onclick*="page40"] { 
             background: #3b82f6; 
             color: white; 
-            box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.3); 
+            box-shadow: 0 -4px 15px rgba(59, 130, 246, 0.35); 
         }
 
-        /* تأثير عند تمرير مؤشر الماوس */
-        .tab-btn:hover:not(.active) {
-            background: #475569;
-            color: #f1f5f9;
+        .tab-btn:hover:not(.active) { background: #475569; color: #f1f5f9; }
+        .tab-btn:hover i { transform: scale(1.1); }
+
+        /* شريط معلومات النظام (الوقت والشبكة) */
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding-bottom: 8px;
         }
-        
-        .tab-btn:hover i {
-            transform: scale(1.15); /* تفاعل ذكي للأيقونة عند الحوم فوقها */
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #1e293b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid #334155;
         }
+
+        .network-online { color: #10b981; }
+        .network-offline { color: #ef4444; }
 
         /* حاوية المحتوى */
         .content-area {
@@ -82,61 +99,167 @@
             background: #f8fafc;
         }
 
-        iframe {
+        /* شاشة التحميل الذكية */
+        .loader-container {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+            color: white;
+            font-weight: bold;
+            gap: 12px;
         }
 
+        .spinner {
+            width: 35px; height: 35px;
+            border: 4px solid #334155;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+
+        /* انتقال ناعم عند ظهور الصفحة */
         iframe.active {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* تحسين مظهر التصفح على الهواتف الذكية */
+        @media (max-width: 600px) {
+            body { flex-direction: column-reverse; } /* شريط التنقل يصبح بالأسفل لسهولة الاستخدام */
+            .tab-bar {
+                border-bottom: none;
+                border-top: 3px solid #3b82f6;
+                padding: 6px 10px;
+                justify-content: center;
+            }
+            .nav-buttons { width: 100%; justify-content: space-around; }
+            .tab-btn {
+                border-radius: 12px;
+                padding: 10px 20px;
+                font-size: 0.95rem;
+                flex: 1;
+                justify-content: center;
+            }
+            .system-status { display: none; } /* إخفاء الساعة في الموبايل لتوفير مساحة */
         }
     </style>
 </head>
 <body>
 
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('page12', this)">
-            <i class="fa-solid fa-fingerprint"></i> نظام البصمة (12)
-        </button>
+        <div class="nav-buttons">
+            <button id="btn-page12" class="tab-btn" onclick="switchTab('page12', this)">
+                <i class="fa-solid fa-fingerprint"></i> نظام البصمة (12)
+            </button>
 
-        <button class="tab-btn" onclick="switchTab('page40', this)">
-            <i class="fa-solid fa-gauge-high"></i> النظام الإداري (40)
-        </button>
+            <button id="btn-page40" class="tab-btn" onclick="switchTab('page40', this)">
+                <i class="fa-solid fa-gauge-high"></i> النظام الإداري (40)
+            </button>
+        </div>
+
+        <!-- شريط الحالة الحي ذو المظهر المعاصر -->
+        <div class="system-status">
+            <div class="status-item">
+                <i id="network-icon" class="fa-solid fa-wifi network-online"></i>
+                <span id="network-text">متصل</span>
+            </div>
+            <div class="status-item">
+                <i class="fa-regular fa-clock"></i>
+                <span id="live-clock">00:00:00 م</span>
+            </div>
+        </div>
     </div>
 
     <div class="content-area">
-        <iframe id="page12" src="12.html" class="active" allow="camera; microphone; camera *; geolocation"></iframe>
-        <iframe id="page40" src="40.html" allow="camera; geolocation"></iframe>
+        <!-- شاشة التحميل -->
+        <div id="main-loader" class="loader-container">
+            <div class="spinner"></div>
+            <span>جاري تهيئة النظام الإداري...</span>
+        </div>
+
+        <iframe id="page12" src="12.html" allow="camera; microphone; camera *; geolocation" onload="hideLoader()"></iframe>
+        <iframe id="page40" src="40.html" allow="camera; geolocation" onload="hideLoader()"></iframe>
     </div>
 
     <script>
-        function switchTab(pageId, btn) {
-            document.querySelectorAll('iframe').forEach(frame => {
-                frame.classList.remove('active');
-            });
+        // نظام الذاكرة المحلية (تذكر التبويب النشط)
+        const lastTab = localStorage.getItem('activeTab') || 'page12';
+        
+        // تفعيل التبويب المحفوظ عند التشغيل
+        document.addEventListener("DOMContentLoaded", () => {
+            const activeFrame = document.getElementById(lastTab);
+            const activeBtn = document.getElementById(`btn-${lastTab}`);
+            if(activeFrame && activeBtn) {
+                activeFrame.classList.add('active');
+                activeBtn.classList.add('active');
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        });
 
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('active');
-            });
+        function switchTab(pageId, btn) {
+            document.querySelectorAll('iframe').forEach(frame => frame.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
             const targetFrame = document.getElementById(pageId);
             if (targetFrame) {
                 targetFrame.classList.add('active');
                 btn.classList.add('active');
+                localStorage.setItem('activeTab', pageId); // حفظ الاختيار
             }
         }
 
-        // تسجيل Service Worker للعمل كتطبيق
+        // إخفاء شاشة التحميل فور جاهزية الـ iframe
+        function hideLoader() {
+            const loader = document.getElementById('main-loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 300);
+            }
+        }
+
+        // تحديث الساعة الحية
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('ar-OM', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // مراقبة حالة الإنترنت
+        window.addEventListener('online', () => updateNetworkStatus(true));
+        window.addEventListener('offline', () => updateNetworkStatus(false));
+
+        function updateNetworkStatus(isOnline) {
+            const icon = document.getElementById('network-icon');
+            const text = document.getElementById('network-text');
+            if (isOnline) {
+                icon.className = "fa-solid fa-wifi network-online";
+                text.innerText = "متصل";
+            } else {
+                icon.className = "fa-solid fa-circle-xmark network-offline";
+                text.innerText = "غير متصل";
+            }
+        }
+
+        // تسجيل الـ Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('تم تسجيل التطبيق بنجاح!'))
-                .catch(err => console.log('فشل التسجيل', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('فشل التسجيل', err));
             });
         }
     </script>
