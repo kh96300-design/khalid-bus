@@ -49,6 +49,7 @@
         /* الألوان الخاصة بكل تبويب عند التفعيل */
         .tab-btn.active[onclick*="page12"] { background: #8b5cf6; color: white; }
         .tab-btn.active[onclick*="page40"] { background: #3b82f6; color: white; }
+        .tab-btn.active[onclick*="pageTasks"] { background: #10b981; color: white; }
 
         .tab-btn:hover:not(.active) {
             background: #475569;
@@ -63,7 +64,7 @@
             background: #f8fafc;
         }
 
-        iframe {
+        iframe, .custom-page {
             position: absolute;
             top: 0;
             left: 0;
@@ -73,8 +74,83 @@
             display: none;
         }
 
-        iframe.active {
+        iframe.active, .custom-page.active {
             display: block;
+        }
+
+        /* تنسيقات صفحة المهام المخصصة */
+        .tasks-container {
+            background: #0f172a;
+            color: #f1f5f9;
+            height: 100%;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .filter-section {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .filter-section label {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .filter-select {
+            background: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            background: #1e293b;
+            border-radius: 10px;
+            border: 1px solid #334155;
+        }
+
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        .tasks-table th {
+            background: #334155;
+            color: #3b82f6;
+            padding: 12px 15px;
+            font-weight: bold;
+            border-bottom: 2px solid #475569;
+        }
+
+        .tasks-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        .tasks-table tr:hover {
+            background: #243249;
+        }
+
+        .loading-text {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            color: #94a3b8;
         }
     </style>
 </head>
@@ -88,16 +164,47 @@
         <button class="tab-btn" onclick="switchTab('page40', this)">
             <i class="fa-solid fa-gauge-high"></i> النظام الإداري (40)
         </button>
+
+        <button class="tab-btn" onclick="switchTab('pageTasks', this)">
+            <i class="fa-solid fa-list-check"></i> صفحة المهام (Sheet3)
+        </button>
     </div>
 
     <div class="content-area">
         <iframe id="page12" src="12.html" class="active" allow="camera; microphone; camera *; geolocation"></iframe>
         <iframe id="page40" src="40.html" allow="camera; geolocation"></iframe>
+        
+        <div id="pageTasks" class="custom-page">
+            <div class="tasks-container">
+                
+                <div class="filter-section">
+                    <label for="taskFilter"><i class="fa-solid fa-filter"></i> تصفية حسب العمود الأول:</label>
+                    <select id="taskFilter" class="filter-select" onchange="filterData()">
+                        <option value="all">عرض الكل</option>
+                    </select>
+                </div>
+
+                <div class="table-wrapper">
+                    <div id="loading" class="loading-text"><i class="fas fa-spinner fa-spin"></i> جاري جلب البيانات من جوجل شيت...</div>
+                    <table class="tasks-table" id="dataTable" style="display: none;">
+                        <thead id="tableHeader"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <script>
+        //ضع هنا رابط ملف الـ Google Sheet الخاص بك بعد تعديله بصيغة العرض كـ CSV لـ Sheet2
+        // مثال للرابط الصحيح: https://docs.google.com/spreadsheets/d/e/ID_HERE/pub?gid=GID_HERE&output=csv
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTJIn-uhyNEwELYBXf0Nfi0nimNaPtUFypetKH0cP6_3ux7dIzeKiIbXfvTuteX4BDUa_UAnxoAjHWA/pubhtml?gid=95542725&single=true";
+
+        let allRowsData = [];
+
         function switchTab(pageId, btn) {
-            document.querySelectorAll('iframe').forEach(frame => {
+            document.querySelectorAll('iframe, .custom-page').forEach(frame => {
                 frame.classList.remove('active');
             });
 
@@ -109,6 +216,100 @@
             if (targetFrame) {
                 targetFrame.classList.add('active');
                 btn.classList.add('active');
+                
+                // جلب البيانات فقط عند فتح تبويب المهام لأول مرة
+                if(pageId === 'pageTasks' && allRowsData.length === 0) {
+                    fetchSheetData();
+                }
+            }
+        }
+
+        // دالة جلب البيانات من جوجل شيت وتحويلها من CSV إلى مصفوفة
+        async function fetchSheetData() {
+            try {
+                const response = await fetch(SHEET_CSV_URL);
+                const dataText = await response.text();
+                
+                // تحويل أسطر الـ CSV إلى مصفوفات
+                const rows = dataText.split('\n').map(row => {
+                    // معالجة الفواصل داخل النصوص بشكل مبسط
+                    return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"|"$/g, '').trim());
+                }).filter(row => row.length > 0 && row.some(cell => cell !== ""));
+
+                if(rows.length > 0) {
+                    allRowsData = rows;
+                    renderTable(rows);
+                    populateFilter(rows);
+                } else {
+                    document.getElementById('loading').innerText = "لا توجد بيانات متاحة في هذه الورقة.";
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById('loading').innerText = "فشل في جلب البيانات. يرجى التحقق من إعدادات النشر والرابط.";
+            }
+        }
+
+        // بناء الجدول وعرض العناوين والصفوف
+        function renderTable(rows) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dataTable').style.display = 'table';
+            
+            const headerElement = document.getElementById('tableHeader');
+            const bodyElement = document.getElementById('tableBody');
+            
+            headerElement.innerHTML = "";
+            bodyElement.innerHTML = "";
+
+            // الأسطر الأولى تمثل الهيدر (العناوين)
+            const headers = rows[0];
+            let headerHtml = "<tr>";
+            headers.forEach(h => headerHtml += `<th>${h}</th>`);
+            headerHtml += "</tr>";
+            headerElement.innerHTML = headerHtml;
+
+            // الصفوف الفعلية للبيانات
+            displayRows(rows.slice(1));
+        }
+
+        function displayRows(dataRows) {
+            const bodyElement = document.getElementById('tableBody');
+            bodyElement.innerHTML = "";
+            
+            dataRows.forEach(row => {
+                let rowHtml = "<tr>";
+                row.forEach(cell => rowHtml += `<td>${cell || '-'}</td>`);
+                rowHtml += "</tr>";
+                bodyElement.innerHTML += rowHtml;
+            });
+        }
+
+        // ملء القائمة المنسدلة بالقيم الفريدة من (العمود الأول مثلاً) للتصفية بناءً عليها
+        function populateFilter(rows) {
+            const filterSelect = document.getElementById('taskFilter');
+            const dataRows = rows.slice(1);
+            
+            // جلب القيم من العمود الأول (مثل اسم المعلم أو القسم) بدون تكرار
+            const uniqueValues = [...new Set(dataRows.map(row => row[0]))].filter(val => val);
+
+            uniqueValues.forEach(val => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.innerText = val;
+                filterSelect.appendChild(opt);
+            });
+        }
+
+        // دالة التصفية عند تغيير خيار القائمة المنسدلة
+        function filterData() {
+            const selectedValue = document.getElementById('taskFilter').value;
+            const dataRows = allRowsData.slice(1);
+
+            if(selectedValue === 'all') {
+                displayRows(dataRows);
+            } else {
+                // تصفية الصفوف التي يتطابق عمودها الأول مع الخيار المختار
+                const filtered = dataRows.filter(row => row[0] === selectedValue);
+                displayRows(filtered);
             }
         }
 
