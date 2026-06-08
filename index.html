@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link align="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -49,6 +49,7 @@
         /* الألوان الخاصة بكل تبويب عند التفعيل */
         .tab-btn.active[onclick*="page12"] { background: #8b5cf6; color: white; }
         .tab-btn.active[onclick*="page40"] { background: #3b82f6; color: white; }
+        .tab-btn.active[onclick*="tasks"] { background: #10b981; color: white; } /* لون أخضر لصفحة المهام */
 
         .tab-btn:hover:not(.active) {
             background: #475569;
@@ -88,11 +89,18 @@
         <button class="tab-btn" onclick="switchTab('page40', this)">
             <i class="fa-solid fa-gauge-high"></i> النظام الإداري (40)
         </button>
+
+        <!-- زر صفحة المهام المضاف -->
+        <button class="tab-btn" onclick="switchTab('tasks', this)">
+            <i class="fa-solid fa-list-check"></i> صفحة المهام
+        </button>
     </div>
 
     <div class="content-area">
         <iframe id="page12" src="12.html" class="active" allow="camera; microphone; camera *; geolocation"></iframe>
         <iframe id="page40" src="40.html" allow="camera; geolocation"></iframe>
+        <!-- إطار صفحة المهام المضاف (يفترض أن اسم الملف tasks.html) -->
+        <iframe id="tasks" src="tasks.html" allow="camera; geolocation"></iframe>
     </div>
 
     <script>
